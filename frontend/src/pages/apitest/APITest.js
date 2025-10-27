@@ -1,6 +1,6 @@
 import React, { useRef, useState } from "react";
 
-const API_KEY = "AIzaSyB5tYsv8Y-zucBpLKb6gh7tZmRXEkHTwcA"; // 🔑 your Google Gemini API key
+const API_KEY = ""; // 
 
 export default function SketchToImage() {
   const canvasRef = useRef(null);
