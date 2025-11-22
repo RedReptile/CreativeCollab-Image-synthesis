@@ -2,6 +2,7 @@ import React from "react";
 import { FaUser, FaArrowRight } from "react-icons/fa";
 import { Link } from "react-router-dom";
 import HomeImg from "../../images/homeimg.png";
+
 import Card1 from "../../images/card1.jpg";
 import Card2 from "../../images/card2.jpg";
 import Card3 from "../../images/card3.jpg";
@@ -12,7 +13,7 @@ const HomePage = () => {
     <div>
       {/* Header */}
       <header className="text-black px-20 py-10 flex items-center justify-between">
-        <Link to="/" className="text-lg font-bold">
+        <Link to="/homepage" className="text-lg font-bold">
           CreativeCollab
         </Link>
 
@@ -31,7 +32,7 @@ const HomePage = () => {
         </div>
 
         <Link
-          to="/contact"
+          to="/profile"
           className="px-4 text-sm font-medium hover:text-[#4A78EF] flex items-center gap-2"
         >
           <FaUser className="text-[#4A78EF]" /> Profile
@@ -141,7 +142,7 @@ const HomePage = () => {
 
             {/* Card 3 */}
             <Link
-              to="/"
+              to="/artisticfilter"
               className="relative w-1/3 mx-2 rounded-md overflow-hidden group shadow-lg hover:shadow-2xl transition duration-300"
             >
               <img

@@ -36,13 +36,6 @@ const SendOtp = () => {
         </button>
       </div>
 
-      {/* Signup Link */}
-      <div className="w-full text-center mt-8 text-xs">
-        <span className="text-gray-600">Don't have an account? </span>
-        <Link to="/signup" className="text-blue-600 font-semibold hover:underline">
-          Sign up
-        </Link>
-      </div>
     </AuthLayout>
   );
 };

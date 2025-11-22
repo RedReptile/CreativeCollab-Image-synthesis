@@ -1,10 +1,34 @@
 import React, { useState } from "react";
 import { FaEnvelope } from "react-icons/fa";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
 import AuthLayout from "../components/AuthLayout";
 
 const ForgotPasswordPage = () => {
   const [email, setEmail] = useState("");
+  const navigate = useNavigate();
+
+  const validateEmail = (email) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
+
+  const handleSendOtp = (e) => {
+    e.preventDefault();
+    
+    if (!email) {
+      toast.error("Please enter your email address!");
+      return;
+    }
+
+    if (!validateEmail(email)) {
+      toast.error("Please enter a valid email address!");
+      return;
+    }
+
+    // If validation passes, navigate to send OTP page
+    navigate("/sendotp");
+  };
 
   return (
     <AuthLayout
@@ -26,12 +50,12 @@ const ForgotPasswordPage = () => {
       </div>
 
       {/* Send OTP */}
-      <Link
-        to="/sendotp"
+      <button
+        onClick={handleSendOtp}
         className="w-full bg-blue-600 text-white py-2 rounded-md text-xs font-semibold shadow hover:bg-blue-700 transition mb-3 text-center"
       >
         Send OTP
-      </Link>
+      </button>
 
       {/* Signup Link */}
       <div className="w-full text-center mt-3 text-xs">

@@ -1,8 +1,20 @@
 // components/AuthLayout.jsx
-import React from "react";
+import React, { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import AuthImage from "../../images/auth.png";
 
 const AuthLayout = ({ children, title, subtitle }) => {
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+
+    // If no token, always force redirect to login
+    if (!token) {
+      navigate("/login");
+    }
+  }, [navigate]);
+
   return (
     <div className="min-h-screen bg-white relative">
       {/* Logo */}
@@ -27,7 +39,7 @@ const AuthLayout = ({ children, title, subtitle }) => {
           />
         </div>
 
-        {/* Right Side (Dynamic) */}
+        {/* Right Side (Dynamic Content) */}
         <div className="w-full md:w-1/2 p-6 flex flex-col items-start">
           <h2 className="text-blue-600 text-lg font-semibold mb-1">{title}</h2>
           <p className="mb-4 text-gray-600 text-xs">{subtitle}</p>
