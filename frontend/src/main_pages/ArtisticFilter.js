@@ -1,8 +1,14 @@
 import React, { useState } from "react";
 import axios from "axios";
-import { FileText, Sparkles, User, Download, X } from "lucide-react";
+import { FileText, Sparkles, Download, X } from "lucide-react";
 import { Link } from "react-router-dom";
 import { FaUser } from "react-icons/fa";
+import candyBG from "../images/candy.jpg";
+import mosaicBG from "../images/mosaic.jpg";
+import rainPrincessBG from "../images/rain-princess.jpg";
+import udnieBG from "../images/udnie.jpg";
+import { UPSCALE_ENDPOINT, getScaleForResolution } from "../utils/upscale";
+
 
 export default function ArtisticFilter() {
   const [image, setImage] = useState(null);
@@ -11,33 +17,36 @@ export default function ArtisticFilter() {
   const [output, setOutput] = useState(null);
   const [loading, setLoading] = useState(false);
   const [showDownloadMenu, setShowDownloadMenu] = useState(false);
+  const [isUpscaling, setIsUpscaling] = useState(false);
+  const [activeResolution, setActiveResolution] = useState("");
 
   const styles = [
     { 
       name: "Candy", 
-      value: "candy", 
-      gradient: "from-pink-400 via-purple-400 to-indigo-400",
-      image: "/images/candy.jpg"
+      value: "candy",
+      image: candyBG,
+      bgImage: candyBG,
     },
     { 
       name: "Mosaic", 
       value: "mosaic", 
-      gradient: "from-amber-400 via-orange-400 to-red-400",
-      image: "/images/mosaic.jpg"
+      image: mosaicBG,
+      bgImage: mosaicBG,
     },
     { 
       name: "Rain Princess", 
       value: "rain_princess", 
-      gradient: "from-blue-400 via-cyan-400 to-teal-400",
-      image: "/images/rain_princess.jpg"
+      image: rainPrincessBG,
+      bgImage: rainPrincessBG,
     },
     { 
       name: "Udnie", 
       value: "udnie", 
-      gradient: "from-green-400 via-emerald-400 to-lime-400",
-      image: "/images/udnie.jpg"
+      image: udnieBG,
+      bgImage: udnieBG,
     },
   ];
+
 
   const handleFileChange = (e) => {
     const file = e.target.files[0];
@@ -76,74 +85,46 @@ export default function ArtisticFilter() {
   const handleDownload = async (resolution, format) => {
     if (!output) return;
 
-    try {
-      const img = new Image();
-      img.crossOrigin = "anonymous";
-      img.src = output;
+    const scale = getScaleForResolution(resolution);
+    if (!scale) {
+      alert("Unsupported resolution selected.");
+      return;
+    }
 
-      await new Promise((resolve) => {
-        img.onload = resolve;
+    setIsUpscaling(true);
+    setActiveResolution(resolution);
+
+    try {
+      const response = await fetch(output);
+      const blob = await response.blob();
+
+      const uploadName = fileName || "styled-image.png";
+      const formData = new FormData();
+      formData.append("image", blob, uploadName);
+      formData.append("scale", scale);
+      formData.append("format", format);
+
+      const upscaleResponse = await axios.post(UPSCALE_ENDPOINT, formData, {
+        responseType: "blob",
       });
 
-      const canvas = document.createElement("canvas");
-      const ctx = canvas.getContext("2d");
-
-      let width, height;
-      const aspectRatio = img.width / img.height;
-      
-      switch (resolution) {
-        case "480p":
-          height = 480;
-          width = Math.round(height * aspectRatio);
-          break;
-        case "720p":
-          height = 720;
-          width = Math.round(height * aspectRatio);
-          break;
-        case "1080p":
-          height = 1080;
-          width = Math.round(height * aspectRatio);
-          break;
-        default:
-          width = img.width;
-          height = img.height;
-      }
-
-      canvas.width = width;
-      canvas.height = height;
-      ctx.drawImage(img, 0, 0, width, height);
-
-      let mimeType;
-      let extension;
-      
-      switch (format) {
-        case "png":
-          mimeType = "image/png";
-          extension = "png";
-          break;
-        case "jpg":
-          mimeType = "image/jpeg";
-          extension = "jpg";
-          break;
-        default:
-          mimeType = "image/png";
-          extension = "png";
-      }
-
-      canvas.toBlob((blob) => {
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = `styled_${resolution}_${Date.now()}.${extension}`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-        setShowDownloadMenu(false);
-      }, mimeType);
+      const downloadUrl = window.URL.createObjectURL(upscaleResponse.data);
+      const anchor = document.createElement("a");
+      anchor.href = downloadUrl;
+      anchor.download = `styled_${resolution}_${Date.now()}.${format}`;
+      document.body.appendChild(anchor);
+      anchor.click();
+      document.body.removeChild(anchor);
+      window.URL.revokeObjectURL(downloadUrl);
+      setShowDownloadMenu(false);
     } catch (err) {
-      console.error("Download error:", err);
-      alert("Error downloading image");
+      console.error("Upscale download error:", err);
+      alert(
+        "Error downloading image backend might not br running"
+      );
+    } finally {
+      setIsUpscaling(false);
+      setActiveResolution("");
     }
   };
 
@@ -211,7 +192,7 @@ export default function ArtisticFilter() {
             )}
           </div>
 
-          {/* Style Selection (moved up) */}
+          {/* Style Selection  */}
           <div className="mb-4 py-2">
             <h2 className="text-xs font-semibold text-black mb-2">Choose Style</h2>
             <div className="grid grid-cols-2 gap-3">
@@ -239,8 +220,8 @@ export default function ArtisticFilter() {
                       <Sparkles className="w-5 h-5 text-white" />
                     </div>
                   </div>
-                  <div className="bg-white py-1.5">
-                    <span className="text-xs font-medium text-gray-800">{s.name}</span>
+                  <div className="bg-black py-1.5">
+                    <span className="text-xs font-medium text-white">{s.name}</span>
                   </div>
                 </button>
               ))}
@@ -251,7 +232,7 @@ export default function ArtisticFilter() {
           <button
             onClick={handleStylize}
             disabled={loading || !image}
-            className="w-full bg-black text-white font-semibold py-2 rounded-lg hover:bg-gray-800 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 text-sm mb-2"
+            className="w-full bg-blue-600 text-white font-semibold py-2 rounded-lg hover:bg-gray-800 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 text-sm mb-2"
           >
             <Sparkles className="w-4 h-4" />
             {loading ? "Stylizing..." : "Apply Style"}
@@ -285,17 +266,18 @@ export default function ArtisticFilter() {
             {/* Action Bar */}
             <div className="bg-white rounded-lg border border-gray-200 p-3 flex items-center justify-between">
               <p className="text-xs text-gray-600">
-                {output ? "✓ Image ready" : "Upload an image to begin"}
+                {output ? "Image is ready to download." : "Upload an image to begin"}
               </p>
 
               {output && (
                 <div className="relative">
                   <button
                     onClick={() => setShowDownloadMenu(!showDownloadMenu)}
-                    className="flex items-center gap-1.5 px-3 py-1.5 bg-black text-white font-medium rounded-lg hover:bg-gray-800 transition text-xs"
+                    disabled={isUpscaling}
+                    className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 text-white font-medium rounded-lg hover:bg-gray-800 transition text-xs disabled:bg-gray-400 disabled:cursor-not-allowed"
                   >
                     <Download className="w-3.5 h-3.5" />
-                    Download
+                    {isUpscaling ? "Processing..." : "Download"}
                   </button>
 
                   {showDownloadMenu && (
@@ -315,16 +297,28 @@ export default function ArtisticFilter() {
                               <button
                                 key={res}
                                 onClick={() => {
-                                  const fmt = document.querySelector('input[name="format"]:checked')?.value || 'png';
+                                  const fmt =
+                                    document.querySelector(
+                                      'input[name="format"]:checked'
+                                    )?.value || "png";
                                   handleDownload(res, fmt);
                                 }}
-                                className="px-2 py-1.5 bg-gray-100 hover:bg-gray-200 text-black text-xs rounded transition font-medium"
+                                disabled={
+                                  isUpscaling && activeResolution === res
+                                }
+                                className={`px-2 py-1.5 text-black text-xs rounded transition font-medium ${
+                                  isUpscaling && activeResolution === res
+                                    ? "bg-gray-200 cursor-not-allowed"
+                                    : "bg-gray-100 hover:bg-gray-200"
+                                }`}
                               >
-                                {res}
+                                {isUpscaling && activeResolution === res
+                                  ? "Processing..."
+                                  : res}
                               </button>
                             ))}
                           </div>
-                        </div>
+                        </div>a
 
                         <div>
                           <p className="text-xs text-gray-500 mb-1.5 font-medium">Format</p>

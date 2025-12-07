@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
+import axios from 'axios';
 import { Wand2, Download, Image, Sparkles } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { FaUser } from 'react-icons/fa';
+import { UPSCALE_ENDPOINT, getScaleForResolution } from '../../utils/upscale';
 
 export default function TextToImageApp() {
   const [selectedModel, setSelectedModel] = useState('gemini');
@@ -10,6 +12,7 @@ export default function TextToImageApp() {
   const [selectedResolution, setSelectedResolution] = useState('480p');
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedImage, setGeneratedImage] = useState(null);
+  const [isDownloading, setIsDownloading] = useState(false);
 
   const handleGenerate = async () => {
     if (!prompt.trim()) return;
@@ -47,14 +50,42 @@ export default function TextToImageApp() {
     }
   };
 
-  const handleDownload = () => {
+  const handleDownload = async () => {
     if (!generatedImage) return;
-    const link = document.createElement('a');
-    link.href = generatedImage;
-    link.download = `generated-image.${selectedFormat}`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+
+    const scale = getScaleForResolution(selectedResolution);
+    if (!scale) {
+      alert('Unsupported resolution selected.');
+      return;
+    }
+
+    setIsDownloading(true);
+
+    try {
+      const blob = await (await fetch(generatedImage)).blob();
+      const formData = new FormData();
+      formData.append('image', blob, `generated-image.${selectedFormat}`);
+      formData.append('scale', scale);
+      formData.append('format', selectedFormat);
+
+      const response = await axios.post(UPSCALE_ENDPOINT, formData, {
+        responseType: 'blob',
+      });
+
+      const url = window.URL.createObjectURL(response.data);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `generated-image-${selectedResolution}.${selectedFormat}`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Upscale download error:', error);
+      alert('Failed to upscale image before download. Please try again.');
+    } finally {
+      setIsDownloading(false);
+    }
   };
 
   return (
@@ -124,7 +155,7 @@ export default function TextToImageApp() {
             />
           </div>
 
-                    <button
+              <button
             onClick={handleGenerate}
             disabled={isGenerating}
             className="bg-blue-600 text-white px-6 py-2 rounded-md text-sm font-medium hover:bg-blue-700 transition-colors flex items-center gap-2 disabled:bg-blue-400"
@@ -213,10 +244,10 @@ export default function TextToImageApp() {
             {/* Download Button */}
             <button
               onClick={handleDownload}
-              disabled={!generatedImage}
+              disabled={!generatedImage || isDownloading}
               className="w-full bg-blue-600 text-white py-2 rounded-md text-sm font-semibold hover:bg-blue-700 transition-colors flex items-center justify-center gap-2 disabled:bg-gray-400"
             >
-              <Download size={16} /> Download
+              <Download size={16} /> {isDownloading ? 'Processing...' : 'Download'}
             </button>
           </div>
         </div>

@@ -17,3 +17,28 @@ Colab environment set up for GPU training.
 
 **So far**: Dataset pipeline + label mapping done.
 **Next**: Finalize subset → run SPADE training → test synthesis.
+
+---
+
+## Real-ESRGAN Upscaling API
+
+1. Create / activate your Python environment.
+2. Install the backend dependencies (includes Real-ESRGAN and FastAPI):
+   ```
+   pip install -r backend/requirements.txt
+   ```
+3. Run the FastAPI server (defaults to port 8000):
+   ```
+   uvicorn backend.app:app --reload --port 8000
+   ```
+
+The first upscale request for each scale will automatically download the
+pretrained Real-ESRGAN weights into `backend/models/`. Keep these files out of
+version control (they are already gitignored).
+
+Set the frontend environment variable to point at the API (optional if you use
+the default localhost URL):
+
+```
+REACT_APP_UPSCALE_API_URL=http://localhost:8000
+```

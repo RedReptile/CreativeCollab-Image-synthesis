@@ -1,46 +1,63 @@
-from flask import Flask, request, send_file
+from flask import Flask, request, send_file, jsonify
 from flask_cors import CORS
-import style  # your neural style transfer code
+import style                 # your neural style transfer functions
 import os
+import uuid                  # to generate safe unique filenames
 
 app = Flask(__name__)
-CORS(app)  # allow requests from React frontend
+CORS(app)
 
-# Home route
+
 @app.get("/")
 def home():
     return "Neural Style Transfer Backend is running!"
 
-# Info for GET /stylize
+
 @app.get("/stylize")
 def stylize_info():
-    return "Send a POST request with 'image' and 'style' to get stylized image."
+    return "Send a POST request with 'image' (file) and 'style' (string)."
 
-# POST /stylize
+
 @app.post("/stylize")
 def stylize_image():
-    if 'image' not in request.files or 'style' not in request.form:
-        return "Missing image or style", 400
+    # Validate input
+    if "image" not in request.files:
+        return jsonify({"error": "No image file provided"}), 400
 
-    image_file = request.files['image']
-    style_name = request.form['style']
+    if "style" not in request.form:
+        return jsonify({"error": "No style name provided"}), 400
 
-    # Save uploaded image temporarily
-    input_path = os.path.join("images/content-images", image_file.filename)
-    image_file.save(input_path)
+    image_file = request.files["image"]
+    style_name = request.form["style"]
 
-    output_filename = f"{style_name}_{image_file.filename}"
+    # Ensure directories exist
+    os.makedirs("images/content-images", exist_ok=True)
+    os.makedirs("images/output-images", exist_ok=True)
+
+    # Generate unique safe filename
+    file_ext = os.path.splitext(image_file.filename)[1]
+    safe_filename = f"{uuid.uuid4().hex}{file_ext}"
+
+    # Paths
+    input_path = os.path.join("images/content-images", safe_filename)
+    output_filename = f"{style_name}_{safe_filename}"
     output_path = os.path.join("images/output-images", output_filename)
 
-    # Load model and stylize
+    # Save uploaded image
+    image_file.save(input_path)
+
+    # Model path
     model_path = os.path.join("saved_models", f"{style_name}.pth")
+    if not os.path.exists(model_path):
+        return jsonify({"error": f"Model '{style_name}.pth' not found"}), 404
+
+    # Apply neural style transfer
     model = style.load_model(model_path)
     style.stylize(model, input_path, output_path)
 
-    # Return output image
-    return send_file(output_path, mimetype='image/jpeg')
+    # Return the result
+    return send_file(output_path, mimetype="image/jpeg")
+
 
 if __name__ == "__main__":
-    os.makedirs("images/content-images", exist_ok=True)
-    os.makedirs("images/output-images", exist_ok=True)
     app.run(host="0.0.0.0", port=5000, debug=True)

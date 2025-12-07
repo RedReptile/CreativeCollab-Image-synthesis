@@ -3,10 +3,8 @@ import { FaUser, FaArrowRight } from "react-icons/fa";
 import { Link } from "react-router-dom";
 import HomeImg from "../../images/homeimg.png";
 
-import Card1 from "../../images/card1.jpg";
 import Card2 from "../../images/card2.jpg";
 import Card3 from "../../images/card3.jpg";
-
 
 const HomePage = () => {
   return (
@@ -74,57 +72,37 @@ const HomePage = () => {
 
         {/* Right Section */}
         <div className="w-1/2 flex flex-col justify-center items-center -mt-20">
-          {/* Numbers + Text Row */}
+
+          {/* Numbers Row */}
           <div className="flex flex-col items-center w-3/4 mb-6">
-            <div className="flex items-center justify-center w-full mb-2 ml-4">
-              <div className="flex flex-col items-center">
+            <div className="flex items-center justify-center w-full mb-2 ml-2">
+              
+
+              <div className="flex flex-col items-center pl-4">
                 <span className="font-bold text-lg text-[#4A78EF]">01.</span>
-                <span className="text-sm font-semibold text-gray-700 mt-1">
-                  Text To Image
-                </span>
-              </div>
-
-              <div className="flex-1 border-t-2 border-black mx-8"></div>
-
-              <div className="flex flex-col items-center">
-                <span className="font-bold text-lg text-[#4A78EF]">02.</span>
                 <span className="text-sm font-semibold text-gray-700 mt-1">
                   Image Synthesis
                 </span>
               </div>
 
-              <div className="flex-1 border-t-2 border-black mx-8"></div>
+              <div className="flex-1 border-t-2 border-black mx-3"></div>
 
               <div className="flex flex-col items-center">
-                <span className="font-bold text-lg text-[#4A78EF]">03.</span>
+                <span className="font-bold text-lg text-[#4A78EF]">2.</span>
                 <span className="text-sm font-semibold text-gray-700 mt-1">
                   Artistic Filter
                 </span>
               </div>
+
             </div>
           </div>
 
           {/* Cards Row */}
           <div className="flex justify-between w-3/4 ml-5 gap-8">
-            {/* Card 1 */}
-            <Link
-              to="/apitest"
-              className="relative w-1/3 mx-2 rounded-md overflow-hidden group shadow-lg hover:shadow-2xl transition duration-300">
-              <img
-                src={Card1}
-                alt="AI generates visuals from text prompts"
-                className="w-full h-[220px] object-cover group-hover:scale-105 transition-transform duration-500"/>
-              <div className="absolute inset-0 bg-black/10 group-hover:bg-black/60 transition duration-300"></div>
-
-              {/* Arrow Button */}
-              <div className="absolute bottom-3 right-3 bg-white text-black p-2 rounded-full shadow-md hover:bg-[#ffffff] hover:translate-x-0 transition-all">
-                <FaArrowRight size={14} />
-              </div>
-            </Link>
 
             {/* Card 2 */}
             <Link
-              to="/"
+              to="/imagesynthesis"
               className="relative w-1/3 mx-2 rounded-md overflow-hidden group shadow-lg hover:shadow-2xl transition duration-300"
             >
               <img
@@ -134,8 +112,7 @@ const HomePage = () => {
               />
               <div className="absolute inset-0 bg-black/10 group-hover:bg-black/60 transition duration-300"></div>
 
-              {/* Arrow Button */}
-              <div className="absolute bottom-3 right-3 bg-white text-black p-2 rounded-full shadow-md hover:bg-[#ffffff] hover:translate-x-0 transition-all">
+              <div className="absolute bottom-3 right-3 bg-white text-black p-2 rounded-full shadow-md">
                 <FaArrowRight size={14} />
               </div>
             </Link>
@@ -152,11 +129,11 @@ const HomePage = () => {
               />
               <div className="absolute inset-0 bg-black/10 group-hover:bg-black/60 transition duration-300"></div>
 
-              {/* Arrow Button */}
-              <div className="absolute bottom-3 right-3 bg-white text-black p-2 rounded-full shadow-md hover:bg-[#ffffff] hover:translate-x-0 transition-all">
+              <div className="absolute bottom-3 right-3 bg-white text-black p-2 rounded-full shadow-md">
                 <FaArrowRight size={14} />
               </div>
             </Link>
+
           </div>
         </div>
       </div>
