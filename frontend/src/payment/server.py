@@ -7,11 +7,34 @@ Python 3.6 or newer required.
 """
 from flask import Flask, jsonify, request
 
+import os
+from pathlib import Path
+
 import stripe
-# This test secret API key is a placeholder. Don't include personal details in requests with this key.
-# To see your test secret API key embedded in code samples, sign in to your Stripe account.
-# You can also find your test secret API key at https://dashboard.stripe.com/test/apikeys.
-stripe.api_key = 'sk_test_51Sc2PZAUGvw6c2mChftPrMFzBUH5JXwVYIjINqGleNysBXzQaBcey4GcQQVROE0oDdGgo6myoDpkAvFHeexbbHk300ZEsaWb4n'
+
+
+def _load_env_file():
+    """Lightweight .env loader to keep secrets out of source control."""
+    project_root = Path(__file__).resolve().parents[2]
+    env_path = project_root / '.env'
+    if not env_path.exists():
+        return
+
+    for line in env_path.read_text().splitlines():
+        if not line or line.startswith('#') or '=' not in line:
+            continue
+        key, value = line.split('=', 1)
+        if key and key not in os.environ:
+            os.environ[key] = value
+
+
+_load_env_file()
+
+# Pull the secret key from environment so it isn't committed.
+stripe.api_key = os.environ.get('STRIPE_SECRET_KEY')
+
+if not stripe.api_key:
+    raise RuntimeError('STRIPE_SECRET_KEY is not set. Add it to your environment or .env file.')
 stripe.api_version = '2025-11-17.clover'
 
 app = Flask(__name__,

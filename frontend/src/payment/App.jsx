@@ -14,10 +14,14 @@ import "./App.css";
 
 // Make sure to call `loadStripe` outside of a component’s render to avoid
 // recreating the `Stripe` object on every render.
-// This is a public sample test API key.
-// Don’t submit any personally identifiable information in requests made with this key.
-// Sign in to see your own test API key embedded in code samples.
-const stripePromise = loadStripe("pk_test_51Sc2PZAUGvw6c2mCmmwVkG8205AX32dDrxIOwVxx5JvDsplTPd9qs9ETmv4McRo8s9L0C6Jtv8yVknGDTZMWQ2tE00rxH9fuL0");
+// Read the publishable key from environment so it isn't committed.
+const publishableKey = process.env.REACT_APP_STRIPE_PUBLISHABLE_KEY;
+
+if (!publishableKey) {
+  throw new Error('Missing REACT_APP_STRIPE_PUBLISHABLE_KEY. Add it to your .env/.env.local file.');
+}
+
+const stripePromise = loadStripe(publishableKey);
 
 const Complete = () => {
   const [status, setStatus] = useState(null);
