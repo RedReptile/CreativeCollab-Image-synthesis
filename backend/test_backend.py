@@ -12,10 +12,10 @@ def test_backend():
     # Test root endpoint
     try:
         response = requests.get(f"{base_url}/", timeout=5)
-        print(f"✓ Root endpoint: {response.status_code}")
+        print(f"Root endpoint: {response.status_code}")
         print(f"  Response: {response.json()}")
     except requests.exceptions.ConnectionError:
-        print("✗ Cannot connect to backend. Is the server running?")
+        print("Cannot connect to backend. Is the server running?")
         print("  Run: cd backend && python app.py")
         return False
     except Exception as e:
@@ -25,13 +25,13 @@ def test_backend():
     # Test health endpoint
     try:
         response = requests.get(f"{base_url}/health", timeout=5)
-        print(f"✓ Health endpoint: {response.status_code}")
+        print(f"Health endpoint: {response.status_code}")
         print(f"  Response: {response.json()}")
     except Exception as e:
-        print(f"✗ Health check failed: {str(e)}")
+        print(f"Health check failed: {str(e)}")
         return False
     
-    print("\n✓ Backend is running and accessible!")
+    print("\nBackend is running and accessible!")
     return True
 
 if __name__ == "__main__":

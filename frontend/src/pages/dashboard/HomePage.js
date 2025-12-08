@@ -20,7 +20,7 @@ const HomePage = () => {
             <Link to="/homepage" className="px-4 hover:text-[#4A78EF]">
               Home
             </Link>
-            <Link to="/services" className="px-4 hover:text-[#4A78EF]">
+            <Link to="/tutorial" className="px-4 hover:text-[#4A78EF]">
               Tutorials
             </Link>
           </nav>

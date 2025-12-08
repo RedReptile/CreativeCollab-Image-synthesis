@@ -50,7 +50,7 @@ def load_spade_model():
         base_dir = os.path.dirname(__file__)
         trainedmodel_dir = os.path.abspath(os.path.join(base_dir, '../spade/gaugan/trained_model/landscapes'))
         
-        print(f"Looking for pretrained model in: {trainedmodel_dir}")
+        print(f"Looking for trained model in: {trainedmodel_dir}")
         
         if not os.path.exists(trainedmodel_dir):
             raise FileNotFoundError(f"model directory not found: {trainedmodel_dir}")

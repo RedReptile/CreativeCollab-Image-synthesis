@@ -4,11 +4,6 @@ from PIL import Image
 import style
 st.title("Neural Style Transfer")
 
-img = st.sidebar.selectbox(
-    'Select an image to stylize',
-    ('amber.jpg', 'cat.jpg')
-)
-
 style_name = st.sidebar.selectbox(
     'Select a style model',
     ('floral', 'mosaic', 'oilpaint', 'cubism')

@@ -14,6 +14,7 @@ import APITestPage from "./pages/apitest/APITest.js";
 import Profile from "./pages/profile/ProfilePage.js";
 import ArtisticFilter from "./main_pages/ArtisticFilter.js";
 import ImageSynthesis from "./main_pages/ImageSynthesis.js";
+import TutorialPage from "./pages/dashboard/TutorialPage.js";
 
 function App() {
   return (
@@ -29,6 +30,7 @@ function App() {
         <Route path="/apitest" element={<APITestPage />} />
         <Route path="/artisticfilter" element={<ArtisticFilter />} />
         <Route path="/imagesynthesis" element={<ImageSynthesis />} />
+        <Route path="/tutorial" element={<TutorialPage />} />
       </Routes>
       <ToastContainer
         position="top-right"

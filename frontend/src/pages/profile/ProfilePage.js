@@ -271,7 +271,7 @@ const ProfilePage = () => {
                   <h3 className="text-sm font-bold text-black mb-3">Account Status</h3>
                   <div className="flex items-center justify-between py-2.5 px-3] rounded-lg">
                     <span className="text-sm text-gray-600">Verification Status</span>
-                    <span className="text-xs font-semibold px-2.5 py-1 bg-green-100 text-green-700 rounded-full">
+                    <span className="text-xs font-semibold px-2.5 py-1 text-green-700 rounded-full">
                       Verified
                     </span>
                   </div>
@@ -291,42 +291,13 @@ const ProfilePage = () => {
                   </p>
                 </div>
 
-                <div className="bg-white rounded-lg border border-gray-200 p-6">
-                  <div className="flex items-start gap-4 mb-6 pb-6 border-b border-gray-200">
-                    <div
-                      className={`w-12 h-12 rounded-lg flex items-center justify-center ${
-                        isSubscribed
-                          ? "bg-yellow-400"
-                          : "bg-gray-100 border border-gray-200"
-                      }`}
-                    >
-                      {isSubscribed ? (
-                        <FaCrown className="text-white text-lg" />
-                      ) : (
-                        <FaCreditCard className="text-gray-500 text-lg" />
-                      )}
-                    </div>
-
-                    <div className="flex-1">
-                      <h3 className="text-lg font-bold text-black mb-1">
-                        {isSubscribed ? "Premium Active" : "Free Tier"}
-                      </h3>
-                      <p className="text-sm text-gray-500">
-                        {isSubscribed
-                          ? "You have an active premium subscription"
-                          : "Upgrade to unlock premium features"}
-                      </p>
-                    </div>
-                  </div>
+                <div className="bg-white">
 
                   <div className="space-y-3">
-                    <h4 className="text-xs font-bold text-gray-500 uppercase">
-                      Subscription Details
-                    </h4>
 
                     <div className="space-y-2">
-                      <div className="flex justify-between items-center py-2.5 px-3 bg-gray-50 rounded-lg border border-gray-100">
-                        <span className="text-sm text-gray-600">
+                      <div className="flex justify-between items-center py-2.5 px-3">
+                        <span className="text-sm">
                           Current Plan
                         </span>
 
@@ -334,7 +305,7 @@ const ProfilePage = () => {
                           className={`text-xs font-bold px-2.5 py-1 rounded-full ${
                             isSubscribed
                               ? "bg-yellow-100 text-yellow-700"
-                              : "bg-gray-200 text-gray-700"
+                              : "text-gray-700"
                           }`}
                         >
                           {isSubscribed ? "Premium" : "Free"}
@@ -343,7 +314,7 @@ const ProfilePage = () => {
 
                       {isSubscribed ? (
                         <>
-                          <div className="flex justify-between items-center py-2.5 px-3 bg-gray-50 rounded-lg border border-gray-100">
+                          <div className="flex justify-between items-center py-2.5 px-3 rounded-lg border">
                             <span className="text-sm text-gray-600">
                               Billing Cycle
                             </span>
@@ -352,7 +323,7 @@ const ProfilePage = () => {
                             </span>
                           </div>
 
-                          <div className="flex justify-between items-center py-2.5 px-3 bg-gray-50 rounded-lg border border-gray-100">
+                          <div className="flex justify-between items-center py-2.5 px-3">
                             <span className="text-sm text-gray-600">
                               Next Billing Date
                             </span>
@@ -361,7 +332,7 @@ const ProfilePage = () => {
                             </span>
                           </div>
 
-                          <div className="flex justify-between items-center py-2.5 px-3 bg-gray-50 rounded-lg border border-gray-100">
+                          <div className="flex justify-between items-center py-2.5 px-3">
                             <span className="text-sm text-gray-600">
                               Payment Method
                             </span>
