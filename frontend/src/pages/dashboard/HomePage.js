@@ -20,9 +20,6 @@ const HomePage = () => {
             <Link to="/homepage" className="px-4 hover:text-[#4A78EF]">
               Home
             </Link>
-            <Link to="/about" className="px-4 hover:text-[#4A78EF]">
-              About
-            </Link>
             <Link to="/services" className="px-4 hover:text-[#4A78EF]">
               Tutorials
             </Link>
@@ -38,7 +35,7 @@ const HomePage = () => {
       </header>
 
       {/* Hero Image */}
-      <div className="relative w-full flex items-center justify-center px-20 pb-5">
+      <div className="relative w-full flex items-center justify-center px-20 pb-4">
         <img
           src={HomeImg}
           alt="Creative workspace illustration"
@@ -49,7 +46,7 @@ const HomePage = () => {
       {/* Main Section */}
       <div className="relative flex">
         {/* Left Section */}
-        <div className="w-1/2 bg-black pt-20 pb-32 pl-20 pr-8 relative overflow-hidden">
+        <div className="w-1/2 bg-black pt-20 pb-28 pl-20 pr-8 relative overflow-hidden">
           <div className="relative z-10">
             <h1 className="text-5xl font-bold leading-tight">
               <span className="font-bold text-[#4A78EF]">TRANSFORM YOUR</span>
@@ -71,24 +68,24 @@ const HomePage = () => {
         </div>
 
         {/* Right Section */}
-        <div className="w-1/2 flex flex-col justify-center items-center -mt-20">
+        <div className="w-1/2 flex flex-col justify-center items-center -mt-29">
 
           {/* Numbers Row */}
           <div className="flex flex-col items-center w-3/4 mb-6">
             <div className="flex items-center justify-center w-full mb-2 ml-2">
               
 
-              <div className="flex flex-col items-center pl-4">
+              <div className="flex flex-col items-center pl-20">
                 <span className="font-bold text-lg text-[#4A78EF]">01.</span>
                 <span className="text-sm font-semibold text-gray-700 mt-1">
                   Image Synthesis
                 </span>
               </div>
 
-              <div className="flex-1 border-t-2 border-black mx-3"></div>
+              <div className="flex-1 border-t-2 border-[#4A78EF] mx-2"></div>
 
-              <div className="flex flex-col items-center">
-                <span className="font-bold text-lg text-[#4A78EF]">2.</span>
+              <div className="flex flex-col items-center pr-20">
+                <span className="font-bold text-lg text-[#4A78EF]">02.</span>
                 <span className="text-sm font-semibold text-gray-700 mt-1">
                   Artistic Filter
                 </span>
@@ -98,7 +95,7 @@ const HomePage = () => {
           </div>
 
           {/* Cards Row */}
-          <div className="flex justify-between w-3/4 ml-5 gap-8">
+          <div className="flex justify-center w-3/4 ml-5 gap-20">
 
             {/* Card 2 */}
             <Link
@@ -108,7 +105,7 @@ const HomePage = () => {
               <img
                 src={Card2}
                 alt="AI image synthesis process"
-                className="w-full h-[220px] object-cover group-hover:scale-105 transition-transform duration-500"
+                className="w-full h-[270px] object-cover group-hover:scale-105 transition-transform duration-500"
               />
               <div className="absolute inset-0 bg-black/10 group-hover:bg-black/60 transition duration-300"></div>
 
@@ -125,7 +122,7 @@ const HomePage = () => {
               <img
                 src={Card3}
                 alt="Artistic filter transformation"
-                className="w-full h-[220px] object-cover group-hover:scale-105 transition-transform duration-500"
+                className="w-full h-[270px] object-cover group-hover:scale-105 transition-transform duration-500"
               />
               <div className="absolute inset-0 bg-black/10 group-hover:bg-black/60 transition duration-300"></div>
 

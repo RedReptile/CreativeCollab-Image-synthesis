@@ -1,154 +1,144 @@
+# ~~~~~~~~~~~~~~~~~~~~  app.py  ~~~~~~~~~~~~~~~~~~~~
 from flask import Flask, request, send_file, jsonify
 from flask_cors import CORS
 import os
 import sys
 import traceback
-import tempfile
-import uuid
-from PIL import Image, ImageFilter
 import io
+import time
+from PIL import Image, ImageFilter
 
 app = Flask(__name__)
-CORS(app) 
+CORS(app)
 
-# Add the paths to Python path
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../../fast_neural_style/neural_style')))
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../../spade/gaugan')))
+# ---------- inject the extra packages ----------
+FAST_NST = os.path.abspath(os.path.join(os.path.dirname(__file__),
+                                        '../../fast_neural_style/neural_style'))
+SPADE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__),
+                                         '../../spade/gaugan'))
+for p in (FAST_NST, SPADE_DIR):
+    if p not in sys.path:
+        sys.path.append(p)
 
-try:
-    import style  # NST import
-except ImportError:
-    print("Warning: style module not found, continuing without NST")
-    style = None
+# ---------- availability flags ----------
+SPADE_AVAILABLE = False
+STYLE_AVAILABLE = False
 
+# SPADE
 try:
     from spade_handler import generate_image
     SPADE_AVAILABLE = True
 except Exception as e:
-    print(f"Warning: Failed to import spade_handler: {str(e)}")
-    SPADE_AVAILABLE = False
+    print('SPADE import failed')
     traceback.print_exc()
 
-# Simple image enhancement function
-def enhance_image_simple(input_bytes, upscale=1.5):
-    """Upscale and sharpen image using PIL."""
-    img = Image.open(io.BytesIO(input_bytes)).convert("RGB")
+# Neural-style
+try:
+    import style  # noqa – keeps linter quiet
+    STYLE_AVAILABLE = True
+except Exception as e:
+    print('Neural-style import failed  !!!')
+    traceback.print_exc()
+
+# ---------- helper ----------
+def enhance_image_simple(data: bytes, upscale=1.5) -> bytes:
+    img = Image.open(io.BytesIO(data)).convert('RGB')
     w, h = img.size
-    img = img.resize((int(w*upscale), int(h*upscale)), Image.LANCZOS)
+    img = img.resize((int(w * upscale), int(h * upscale)), Image.LANCZOS)
     img = img.filter(ImageFilter.SHARPEN)
-    
     out = io.BytesIO()
-    img.save(out, format="JPEG", quality=95)
+    img.save(out, format='JPEG', quality=95)
     out.seek(0)
     return out.getvalue()
 
-# Root endpoint
-@app.get("/")
+# ---------- routes ----------
+@app.get('/')
 def home():
-    return jsonify({
-        "status": "running",
-        "spade_available": SPADE_AVAILABLE
-    })
+    return jsonify(status='running',
+                   spade_available=SPADE_AVAILABLE,
+                   style_available=STYLE_AVAILABLE)
 
-# Health check endpoint
-@app.get("/health")
+@app.get('/health')
 def health():
-    return jsonify({
-        "status": "healthy",
-        "spade_available": SPADE_AVAILABLE
-    })
+    return jsonify(status='healthy',
+                   spade_available=SPADE_AVAILABLE,
+                   style_available=STYLE_AVAILABLE)
 
-# SPADE endpoint
-@app.post("/spade")
+# ~~~~~~~~~~~~ SPADE ~~~~~~~~~~~~
+@app.post('/spade')
 def spade_image():
+    if not SPADE_AVAILABLE:
+        return jsonify(error='SPADE handler not available'), 503
+    if 'segmentation' not in request.files:
+        return jsonify(error='Missing segmentation map'), 400
+
+    seg_file = request.files['segmentation']
+    if seg_file.filename == '':
+        return jsonify(error='No file selected'), 400
+
+    os.makedirs('images/content-images', exist_ok=True)
+    base_name = os.path.splitext(seg_file.filename)[0]
+    timestamp = int(time.time())
+    seg_path = os.path.join('images/content-images',
+                            f'{base_name}_{timestamp}.png')
+    seg_file.save(seg_path)
+
     try:
-        if not SPADE_AVAILABLE:
-            return jsonify({"error": "SPADE handler is not available. Check server logs."}), 503
-        
-        if 'segmentation' not in request.files:
-            return jsonify({"error": "Missing segmentation map"}), 400
-
-        seg_file = request.files['segmentation']
-        
-        if seg_file.filename == '':
-            return jsonify({"error": "No file selected"}), 400
-
-        print(f"Received file: {seg_file.filename}")
-        
-        # Save uploaded segmentation map
-        os.makedirs("images/content-images", exist_ok=True)
-        
-        # Get file extension and create a safe filename
-        filename = seg_file.filename or "uploaded_image"
-        # Remove extension and add timestamp for uniqueness
-        import time
-        base_name = os.path.splitext(filename)[0]
-        timestamp = int(time.time())
-        seg_path = os.path.join("images/content-images", f"{base_name}_{timestamp}.png")
-        seg_file.save(seg_path)
-        
-        print(f"Saved segmentation map to: {seg_path}")
-
-        # Generate image using SPADE
-        print("Starting SPADE image generation...")
-        output_name = f"spade_{base_name}_{timestamp}.jpg"
+        output_name = f'spade_{base_name}_{timestamp}.jpg'
         output_path = generate_image(seg_path, output_name=output_name)
-        
-        print(f"Generated image at: {output_path}")
-        
         if not os.path.exists(output_path):
-            return jsonify({"error": "Failed to generate image - output file not found"}), 500
-
-        # Determine mimetype based on file extension
+            return jsonify(error='Output file not created'), 500
         ext = os.path.splitext(output_path)[1].lower()
-        mimetype = 'image/jpeg' if ext in ['.jpg', '.jpeg'] else 'image/png'
-        
+        mimetype = 'image/jpeg' if ext in {'.jpg', '.jpeg'} else 'image/png'
         return send_file(output_path, mimetype=mimetype)
-    
     except Exception as e:
-        error_msg = str(e)
-        print(f"Error in spade_image endpoint: {error_msg}")
         traceback.print_exc()
-        return jsonify({
-            "error": error_msg,
-            "type": type(e).__name__
-        }), 500
+        return jsonify(error=str(e), type=type(e).__name__), 500
 
-
-@app.post("/enhance")
-def enhance():
-    """Enhance image using PIL upscaling and sharpening."""
+# ~~~~~~~~~~~~ STYLE TRANSFER ~~~~~~~~~~~~
+@app.post('/stylize')
+def stylize():
+    # try to import every time so we can survive “fix-and-retry” cycles
     try:
-        if "image" not in request.files:
-            return jsonify({"error": "No image uploaded"}), 400
-
-        file = request.files["image"]
-        if file.filename == '':
-            return jsonify({"error": "No file selected"}), 400
-        
-        raw = file.read()
-        print(f"Enhancing image: {file.filename}")
-
-        enhanced = enhance_image_simple(raw, upscale=1.5)
-
-        response = send_file(
-            io.BytesIO(enhanced),
-            mimetype="image/jpeg",
-            download_name="enhanced.jpg",
-            as_attachment=False
-        )
-        response.headers['Access-Control-Allow-Origin'] = '*'
-        return response
-
+        import style  # noqa
     except Exception as e:
-        error_msg = str(e)
-        print(f"Error in enhance endpoint: {error_msg}")
         traceback.print_exc()
-        return jsonify({
-            "error": error_msg,
-            "type": type(e).__name__
-        }), 500
+        return jsonify(error=f'Cannot load neural-style module: {e}'), 503
 
+    content_file = request.files.get('content')
+    style_file   = request.files.get('style')
+    if not content_file or not style_file:
+        return jsonify(error='Both content and style images required'), 400
 
-if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000, debug=True, use_reloader=False)
+    try:
+        out_path = style.transfer(content_file, style_file)
+        return send_file(out_path, mimetype='image/jpeg')
+    except Exception as e:
+        traceback.print_exc()
+        return jsonify(error=str(e), type=type(e).__name__), 500
+
+# ~~~~~~~~~~~~ ENHANCE ~~~~~~~~~~~~
+@app.post('/enhance')
+def enhance():
+    if 'image' not in request.files:
+        return jsonify(error='No image uploaded'), 400
+    file = request.files['image']
+    if file.filename == '':
+        return jsonify(error='No file selected'), 400
+    try:
+        enhanced = enhance_image_simple(file.read())
+        return send_file(io.BytesIO(enhanced),
+                         mimetype='image/jpeg',
+                         download_name='enhanced.jpg',
+                         as_attachment=False)
+    except Exception as e:
+        traceback.print_exc()
+        return jsonify(error=str(e), type=type(e).__name__), 500
+
+# ---------- bootstrap ----------
+if __name__ == '__main__':
+    print('\nRegistered routes:')
+    for r in app.url_map.iter_rules():
+        print(f'  {r}')
+    print()
+    app.run(host='0.0.0.0', port=5000, debug=True, use_reloader=False)

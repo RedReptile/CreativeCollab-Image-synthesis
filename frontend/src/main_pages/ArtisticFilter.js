@@ -3,10 +3,10 @@ import axios from "axios";
 import { FileText, Sparkles, Download, X } from "lucide-react";
 import { Link } from "react-router-dom";
 import { FaUser } from "react-icons/fa";
-import candyBG from "../images/candy.jpg";
+import floral from "../images/floral.jpg";
 import mosaicBG from "../images/mosaic.jpg";
-import rainPrincessBG from "../images/rain-princess.jpg";
-import udnieBG from "../images/udnie.jpg";
+import oil_painting from "../images/oil_painting.jpg";
+import cubsim from "../images/cubisme.jpg";
 import { UPSCALE_ENDPOINT, getScaleForResolution } from "../utils/upscale";
 
 
@@ -22,10 +22,10 @@ export default function ArtisticFilter() {
 
   const styles = [
     { 
-      name: "Candy", 
-      value: "candy",
-      image: candyBG,
-      bgImage: candyBG,
+      name: "Geometric Floral", 
+      value: "floral",
+      image: floral,
+      bgImage: floral,
     },
     { 
       name: "Mosaic", 
@@ -34,16 +34,16 @@ export default function ArtisticFilter() {
       bgImage: mosaicBG,
     },
     { 
-      name: "Rain Princess", 
-      value: "rain_princess", 
-      image: rainPrincessBG,
-      bgImage: rainPrincessBG,
+      name: "Oil Painting", 
+      value: "oilpaint", 
+      image: oil_painting,
+      bgImage: oil_painting,
     },
     { 
-      name: "Udnie", 
-      value: "udnie", 
-      image: udnieBG,
-      bgImage: udnieBG,
+      name: "Cubsim", 
+      value: "cubism", 
+      image: cubsim,
+      bgImage: cubsim,
     },
   ];
 
@@ -145,7 +145,6 @@ export default function ArtisticFilter() {
         <div className="flex flex-1 items-center justify-center">
           <nav className="space-x-7 flex text-sm font-medium">
             <Link to="/homepage" className="px-4 hover:text-[#4A78EF]">Home</Link>
-            <Link to="/about" className="px-4 hover:text-[#4A78EF]">About</Link>
             <Link to="/services" className="px-4 hover:text-[#4A78EF]">Tutorials</Link>
           </nav>
         </div>

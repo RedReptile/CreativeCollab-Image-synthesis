@@ -11,7 +11,7 @@ img = st.sidebar.selectbox(
 
 style_name = st.sidebar.selectbox(
     'Select a style model',
-    ('candy', 'mosaic', 'rain_princess', 'udnie')
+    ('floral', 'mosaic', 'oilpaint', 'cubism')
 )
 
 model = "neural_style/saved_models/" + style_name + ".pth"

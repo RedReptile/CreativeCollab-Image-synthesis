@@ -251,7 +251,6 @@ export default function ImageSynthesis() {
         <div className="flex flex-1 items-center justify-center">
           <nav className="space-x-7 flex text-sm font-medium">
             <a href="/homepage" className="px-4 hover:text-[#4A78EF]">Home</a>
-            <a href="/about" className="px-4 hover:text-[#4A78EF]">About</a>
             <a href="/services" className="px-4 hover:text-[#4A78EF]">Tutorials</a>
           </nav>
         </div>
@@ -319,7 +318,7 @@ export default function ImageSynthesis() {
               type="button"
               onClick={handleGenerate}
               disabled={loading}
-              className="w-full px-4 py-2.5 bg-blue-400 text-white rounded-lg hover:bg-blue-500 disabled:bg-gray-400 font-semibold flex items-center justify-center gap-2 text-sm transition"
+              className="w-full px-4 py-2.5 bg-blue-400 text-white rounded-lg hover:bg-gray-500 disabled:bg-gray-400 font-semibold flex items-center justify-center gap-2 text-sm transition"
             >
               <Sparkles className="w-4 h-4" />
               {loading ? "Synthesising..." : "Synthesise"}
@@ -371,9 +370,9 @@ export default function ImageSynthesis() {
           <div className="flex-1 rounded-lg border-2 border-gray-200 overflow-hidden flex items-center justify-center mb-3">
             {loading ? (
               <div className="text-center  items-center justify-center">
-                <div className=" mx-auto mb-3">
-                  <Sparkles className="flex ml-20 mt-5 w-12 h-12 text-gray-400 animate-pulse" />
-                  <p className="text-sm text-gray-500 w-full">Your styled image will appear here</p>
+                <div className="text-center">
+                  <Sparkles className="w-12 h-12 text-gray-300 mx-auto mb-2" />
+                  <p className="text-sm text-gray-500">Your styled image will appear here</p>
                 </div>
               </div>
             ) : resultImage ? (
@@ -384,7 +383,8 @@ export default function ImageSynthesis() {
               />
             ) : (
               <div className="text-center p-4">
-                <Sparkles className="w-12 h-12 text-gray-300 mx-auto mb-2" />
+                  <Sparkles className="w-12 h-12 text-gray-300 mx-auto mb-2" />
+                  <p className="text-sm text-gray-500">Your styled image will appear here</p>
               </div>
             )}
           </div>
@@ -400,7 +400,7 @@ export default function ImageSynthesis() {
                 <button
                   onClick={() => setShowDownloadMenu(!showDownloadMenu)}
                   disabled={downloadLoading}
-                  className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition text-xs disabled:bg-gray-400 disabled:cursor-not-allowed"
+                  className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 text-white font-medium rounded-lg hover:bg-gray-700 transition text-xs disabled:bg-gray-400 disabled:cursor-not-allowed"
                 >
                   <Download className="w-3.5 h-3.5" />
                   {downloadLoading ? "Processing..." : "Download"}
