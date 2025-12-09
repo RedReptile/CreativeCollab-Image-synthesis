@@ -1,17 +1,12 @@
-import React, { useState, useEffect, useMemo } from "react";
+import * as React from "react";
 import {loadStripe} from '@stripe/stripe-js';
-import {
-  CheckoutProvider
-} from '@stripe/react-stripe-js/checkout';
-import {
-  BrowserRouter as Router,
-  Route,
-  Routes,
-} from "react-router-dom";
-import CheckoutForm from './CheckoutForm';
+import { Route, Routes } from "react-router-dom";
+import { auth } from '../firebase';
+import { setUserSubscriptionStatus } from '../utils/subscription';
 
-import "./App.css";
+import "../App.css";
 
+const PAYMENT_API_BASE = process.env.REACT_APP_PAYMENT_API || "http://localhost:4242";
 // Make sure to call `loadStripe` outside of a component’s render to avoid
 // recreating the `Stripe` object on every render.
 // Read the publishable key from environment so it isn't committed.
@@ -24,15 +19,16 @@ if (!publishableKey) {
 const stripePromise = loadStripe(publishableKey);
 
 const Complete = () => {
-  const [status, setStatus] = useState(null);
-  const [paymentIntentId, setPaymentIntentId] = useState('');
-  const [paymentStatus, setPaymentStatus] = useState('');
-  const [paymentIntentStatus, setPaymentIntentStatus] = useState('');
-  const [iconColor, setIconColor] = useState('');
-  const [icon, setIcon] = useState('');
-  const [text, setText] = useState('');
+  const [status, setStatus] = React.useState(null);
+  const [paymentIntentId, setPaymentIntentId] = React.useState('');
+  const [paymentStatus, setPaymentStatus] = React.useState('');
+  const [paymentIntentStatus, setPaymentIntentStatus] = React.useState('');
+  const [iconColor, setIconColor] = React.useState('');
+  const [icon, setIcon] = React.useState('');
+  const [text, setText] = React.useState('Fetching payment status…');
+  const [error, setError] = React.useState(null);
 
-  useEffect(() => {
+  React.useEffect(() => {
     const SuccessIcon =
       <svg width="16" height="14" viewBox="0 0 16 14" fill="none" xmlns="http://www.w3.org/2000/svg">
         <path fillRule="evenodd" clipRule="evenodd" d="M15.4695 0.232963C15.8241 0.561287 15.8454 1.1149 15.5171 1.46949L6.14206 11.5945C5.97228 11.7778 5.73221 11.8799 5.48237 11.8748C5.23253 11.8698 4.99677 11.7582 4.83452 11.5681L0.459523 6.44311C0.145767 6.07557 0.18937 5.52327 0.556912 5.20951C0.924454 4.89575 1.47676 4.93936 1.79051 5.3069L5.52658 9.68343L14.233 0.280522C14.5613 -0.0740672 15.1149 -0.0953599 15.4695 0.232963Z" fill="white"/>
@@ -46,15 +42,49 @@ const Complete = () => {
     const urlParams = new URLSearchParams(queryString);
     const sessionId = urlParams.get('session_id');
 
-    fetch(`/session-status?session_id=${sessionId}`)
-      .then((res) => res.json())
+    if (!sessionId) {
+      setError('Missing session_id from Stripe redirect.');
+      return;
+    }
+
+    fetch(`${PAYMENT_API_BASE}/session-status?session_id=${sessionId}`)
+      .then(async (res) => {
+        if (!res.ok) {
+          const text = await res.text();
+          throw new Error(text || `Failed to fetch session status (${res.status})`);
+        }
+        return res.json();
+      })
       .then((data) => {
+        if (data.error) {
+          throw new Error(data.error);
+        }
         setStatus(data.status);
         setPaymentIntentId(data.payment_intent_id);
         setPaymentStatus(data.payment_status);
         setPaymentIntentStatus(data.payment_intent_status);
 
         if (data.status === 'complete') {
+          // Mark subscription as active for the current user in Firebase
+          const user = auth.currentUser;
+          if (user) {
+            setUserSubscriptionStatus(user.uid, true).catch(err => {
+              console.error('Failed to update subscription status:', err);
+            });
+          }
+          
+          // If we're in a popup, notify parent window
+          if (window.opener) {
+            const urlParams = new URLSearchParams(window.location.search);
+            const sessionId = urlParams.get('session_id');
+            if (sessionId) {
+              window.opener.postMessage({
+                type: 'STRIPE_CHECKOUT_SUCCESS',
+                sessionId: sessionId
+              }, window.location.origin);
+            }
+          }
+          
           setIconColor('#30B130');
           setIcon(SuccessIcon);
           setText('Payment succeeded');
@@ -63,75 +93,126 @@ const Complete = () => {
           setIcon(ErrorIcon);
           setText('Something went wrong, please try again.');
         }
+      })
+      .catch((err) => {
+        console.error(err);
+        setError(err.message || 'Unable to load payment status');
+        setIconColor('#DF1B41');
+        setIcon(ErrorIcon);
+        setText('Unable to load payment status');
       });
   }, []);
 
 
     return (
-      <div id="payment-status">
-        <div id="status-icon" style={{backgroundColor: iconColor}}>
+    <div id="payment-status">
+      <div id="status-icon" style={{backgroundColor: iconColor}}>
         {icon}
       </div>
       <h2 id="status-text">{text}</h2>
+      {error && <div style={{color: '#DF1B41', marginBottom: '12px'}}>{error}</div>}
       <div id="details-table">
         <table>
           <tbody>
             <tr>
               <td className="TableLabel">Payment Intent ID</td>
-              <td id="intent-id" className="TableContent">{paymentIntentId}</td>
+              <td id="intent-id" className="TableContent">{paymentIntentId || '—'}</td>
             </tr>
             <tr>
               <td className="TableLabel">Status</td>
-              <td id="intent-status" className="TableContent">{status}</td>
+              <td id="intent-status" className="TableContent">{status || '—'}</td>
             </tr>
             <tr>
               <td className="TableLabel">Payment Status</td>
-              <td id="session-status" className="TableContent">{paymentStatus}</td>
+              <td id="session-status" className="TableContent">{paymentStatus || '—'}</td>
             </tr>
             <tr>
               <td className="TableLabel">Payment Intent Status</td>
-              <td id="payment-intent-status" className="TableContent">{paymentIntentStatus}</td>
+              <td id="payment-intent-status" className="TableContent">{paymentIntentStatus || '—'}</td>
             </tr>
           </tbody>
         </table>
       </div>
-      <a href={`https://dashboard.stripe.com/payments/${paymentIntentId}`} id="view-details" rel="noopener noreferrer" target="_blank">View details
-        <svg width="15" height="14" viewBox="0 0 15 14" fill="none" xmlns="http://www.w3.org/2000/svg"><path fillRule="evenodd" clipRule="evenodd" d="M3.125 3.49998C2.64175 3.49998 2.25 3.89173 2.25 4.37498V11.375C2.25 11.8582 2.64175 12.25 3.125 12.25H10.125C10.6082 12.25 11 11.8582 11 11.375V9.62498C11 9.14173 11.3918 8.74998 11.875 8.74998C12.3582 8.74998 12.75 9.14173 12.75 9.62498V11.375C12.75 12.8247 11.5747 14 10.125 14H3.125C1.67525 14 0.5 12.8247 0.5 11.375V4.37498C0.5 2.92524 1.67525 1.74998 3.125 1.74998H4.875C5.35825 1.74998 5.75 2.14173 5.75 2.62498C5.75 3.10823 5.35825 3.49998 4.875 3.49998H3.125Z" fill="#0055DE"/>            <path d="M8.66672 0C8.18347 0 7.79172 0.391751 7.79172 0.875C7.79172 1.35825 8.18347 1.75 8.66672 1.75H11.5126L4.83967 8.42295C4.49796 8.76466 4.49796 9.31868 4.83967 9.66039C5.18138 10.0021 5.7354 10.0021 6.07711 9.66039L12.7501 2.98744V5.83333C12.7501 6.31658 13.1418 6.70833 13.6251 6.70833C14.1083 6.70833 14.5001 6.31658 14.5001 5.83333V0.875C14.5001 0.391751 14.1083 0 13.6251 0H8.66672Z" fill="#0055DE"/></svg>
-      </a>
-      <a id="retry-button" href="/checkout">Test another</a>
+      {paymentIntentId && (
+        <a href={`https://dashboard.stripe.com/payments/${paymentIntentId}`} id="view-details" rel="noopener noreferrer" target="_blank">View details
+          <svg width="15" height="14" viewBox="0 0 15 14" fill="none" xmlns="http://www.w3.org/2000/svg"><path fillRule="evenodd" clipRule="evenodd" d="M3.125 3.49998C2.64175 3.49998 2.25 3.89173 2.25 4.37498V11.375C2.25 11.8582 2.64175 12.25 3.125 12.25H10.125C10.6082 12.25 11 11.8582 11 11.375V9.62498C11 9.14173 11.3918 8.74998 11.875 8.74998C12.3582 8.74998 12.75 9.14173 12.75 9.62498V11.375C12.75 12.8247 11.5747 14 10.125 14H3.125C1.67525 14 0.5 12.8247 0.5 11.375V4.37498C0.5 2.92524 1.67525 1.74998 3.125 1.74998H4.875C5.35825 1.74998 5.75 2.14173 5.75 2.62498C5.75 3.10823 5.35825 3.49998 4.875 3.49998H3.125Z" fill="#0055DE"/>            <path d="M8.66672 0C8.18347 0 7.79172 0.391751 7.79172 0.875C7.79172 1.35825 8.18347 1.75 8.66672 1.75H11.5126L4.83967 8.42295C4.49796 8.76466 4.49796 9.31868 4.83967 9.66039C5.18138 10.0021 5.7354 10.0021 6.07711 9.66039L12.7501 2.98744V5.83333C12.7501 6.31658 13.1418 6.70833 13.6251 6.70833C14.1083 6.70833 14.5001 6.31658 14.5001 5.83333V0.875C14.5001 0.391751 14.1083 0 13.6251 0H8.66672Z" fill="#0055DE"/></svg>
+        </a>
+      )}
+      <div style={{marginTop: '12px', display: 'flex', gap: '8px', flexWrap: 'wrap'}}>
+        <a id="retry-button" href="/payment/checkout">Test another</a>
+        <a className="button-link" href="/imagesynthesis">Back to Image Synthesis</a>
+        <a className="button-link" href="/artisticfilter">Back to Artistic Filter</a>
+      </div>
   </div>
     )
 }
 
-const App = () => {
-  const promise = useMemo(() => {
-    return fetch('/create-checkout-session', {
-      method: 'POST',
-    })
-      .then((res) => res.json())
-      .then((data) => data.clientSecret);
+const RedirectCheckout = () => {
+  const [message, setMessage] = React.useState('Preparing checkout...');
+  React.useEffect(() => {
+    let active = true;
+    const go = async () => {
+      try {
+        const res = await fetch(`${PAYMENT_API_BASE}/create-checkout-session`, { method: 'POST' });
+        if (!res.ok) {
+          const text = await res.text();
+          throw new Error(`Failed to create checkout session (${res.status}): ${text}`);
+        }
+        const data = await res.json();
+        if (data.url) {
+          // Check if we're in a popup window
+          if (window.opener) {
+            // We're in a popup, send message to parent when redirected
+            const checkSuccess = setInterval(() => {
+              if (window.location.href.includes('/payment/complete')) {
+                const urlParams = new URLSearchParams(window.location.search);
+                const sessionId = urlParams.get('session_id');
+                if (sessionId) {
+                  window.opener.postMessage({
+                    type: 'STRIPE_CHECKOUT_SUCCESS',
+                    sessionId: sessionId
+                  }, window.location.origin);
+                  clearInterval(checkSuccess);
+                }
+              }
+            }, 500);
+            
+            // Also listen for window close
+            window.addEventListener('beforeunload', () => {
+              window.opener.postMessage({
+                type: 'STRIPE_CHECKOUT_CLOSED'
+              }, window.location.origin);
+            });
+          }
+          window.location.href = data.url;
+          return;
+        }
+        throw new Error('Stripe checkout url missing from response');
+      } catch (err) {
+        if (!active) return;
+        console.error(err);
+        setMessage(err.message || 'Failed to start checkout');
+      }
+    };
+    go();
+    return () => { active = false; };
   }, []);
 
-  const appearance = {
-    theme: 'stripe',
-  };
+  return (
+    <div className="App" style={{ padding: '2rem' }}>
+      <h2>Redirecting to Stripe…</h2>
+      <p>{message}</p>
+    </div>
+  );
+};
 
+const App = () => {
   return (
     <div className="App">
-      <Router>
-        <CheckoutProvider
-          stripe={stripePromise}
-          options={{
-            clientSecret: promise,
-            elementsOptions: {appearance},
-          }}
-        >
-          <Routes>
-            <Route path="/checkout" element={<CheckoutForm />} />
-            <Route path="/complete" element={<Complete />} />
-          </Routes>
-        </CheckoutProvider>
-      </Router>
+      <Routes>
+        <Route path="/checkout" element={<RedirectCheckout />} />
+        <Route path="/complete" element={<Complete />} />
+      </Routes>
     </div>
   )
 }

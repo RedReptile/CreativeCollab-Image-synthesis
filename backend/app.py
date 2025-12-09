@@ -405,6 +405,63 @@ def enhance_route():
         traceback.print_exc()
         return jsonify({'error': str(e), 'type': type(e).__name__}), 500
 
+# ---------- Password Reset ----------
+@app.route('/reset-password', methods=['POST'])
+def reset_password():
+    """Reset user password using Firebase Admin SDK"""
+    try:
+        data = request.get_json()
+        email = data.get('email')
+        new_password = data.get('newPassword')
+        
+        if not email or not new_password:
+            return jsonify({'error': 'Email and new password are required'}), 400
+        
+        if len(new_password) < 6:
+            return jsonify({'error': 'Password must be at least 6 characters'}), 400
+        
+        # Try to import firebase-admin
+        try:
+            import firebase_admin
+            from firebase_admin import auth, credentials
+            
+            # Initialize Firebase Admin if not already initialized
+            if not firebase_admin._apps:
+                # Try to get credentials from environment or use default
+                cred_path = os.environ.get('FIREBASE_ADMIN_CREDENTIALS')
+                if cred_path and os.path.exists(cred_path):
+                    cred = credentials.Certificate(cred_path)
+                    firebase_admin.initialize_app(cred)
+                else:
+                    # Use default credentials (for Google Cloud environments)
+                    firebase_admin.initialize_app()
+            
+            # Get user by email
+            try:
+                user = auth.get_user_by_email(email)
+            except Exception as e:
+                return jsonify({'error': 'User not found'}), 404
+            
+            # Update password
+            auth.update_user(user.uid, password=new_password)
+            
+            return jsonify({'success': True, 'message': 'Password reset successfully'}), 200
+            
+        except ImportError:
+            # Fallback: Use Firebase REST API
+            import requests
+            
+            # This is a workaround - in production, use Firebase Admin SDK
+            # For now, we'll return an error asking to install firebase-admin
+            return jsonify({
+                'error': 'Firebase Admin SDK not installed. Install with: pip install firebase-admin',
+                'fallback': 'Please use the password reset link sent to your email'
+            }), 501
+            
+    except Exception as e:
+        traceback.print_exc()
+        return jsonify({'error': str(e), 'type': type(e).__name__}), 500
+
 # ---------- Run ----------
 if __name__ == '__main__':
     print("\n" + "="*70)

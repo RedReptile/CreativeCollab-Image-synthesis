@@ -3,9 +3,13 @@ import { FaEnvelope } from "react-icons/fa";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import AuthLayout from "../components/AuthLayout";
+import { auth } from "../../firebase";
+import { sendPasswordResetEmail } from "firebase/auth";
+import LoginPage from "./LoginPage";
 
 const ForgotPasswordPage = () => {
   const [email, setEmail] = useState("");
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
   const validateEmail = (email) => {
@@ -13,7 +17,11 @@ const ForgotPasswordPage = () => {
     return emailRegex.test(email);
   };
 
-  const handleSendOtp = (e) => {
+  const generateOTP = () => {
+    return Math.floor(100000 + Math.random() * 900000).toString();
+  };
+
+  const handleSendOtp = async (e) => {
     e.preventDefault();
     
     if (!email) {
@@ -26,8 +34,47 @@ const ForgotPasswordPage = () => {
       return;
     }
 
-    // If validation passes, navigate to send OTP page
-    navigate("/sendotp");
+    try {
+      setLoading(true);
+      
+      // Check if user exists by trying to send password reset email
+      // This will fail if email doesn't exist
+      await sendPasswordResetEmail(auth, email);
+      
+      // Generate 6-digit OTP
+      const otp = generateOTP();
+      
+      // Store OTP in localStorage with expiration (10 minutes)
+      // Using localStorage instead of Firestore to avoid permission issues
+      const otpData = {
+        otp: otp,
+        email: email,
+        createdAt: Date.now(),
+        expiresAt: Date.now() + 10 * 60 * 1000, // 10 minutes
+        used: false
+      };
+      localStorage.setItem(`passwordResetOTP_${email}`, JSON.stringify(otpData));
+      
+      // Store email in localStorage for SendOtp page
+      localStorage.setItem("resetPasswordEmail", email);
+      
+      // In production, you would send the OTP via email here
+      // For now, we'll show it in console and toast (remove in production)
+      console.log("OTP for", email, ":", otp);
+      toast.info(`OTP sent to ${email}.`);
+      
+      // Navigate to OTP verification page
+      navigate("/login");
+    } catch (error) {
+      console.error("Error sending OTP:", error);
+      if (error.code === "auth/user-not-found") {
+        toast.error("No account found with this email address.");
+      } else {
+        toast.error(error.message || "Failed to send OTP. Please try again.");
+      }
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -49,18 +96,19 @@ const ForgotPasswordPage = () => {
         />
       </div>
 
-      {/* Send OTP */}
+      {/* Login */}
       <button
         onClick={handleSendOtp}
-        className="w-full bg-blue-600 text-white py-2 rounded-md text-xs font-semibold shadow hover:bg-blue-700 transition mb-3 text-center"
+        disabled={loading}
+        className="w-full bg-blue-600 text-white py-2 rounded-md text-xs font-semibold shadow hover:bg-blue-700 transition mb-3 text-center disabled:opacity-50 disabled:cursor-not-allowed"
       >
-        Send OTP
+        {loading ? "Sending Link ..." : "Send Link"}
       </button>
 
       {/* Signup Link */}
       <div className="w-full text-center mt-3 text-xs">
         <span className="text-gray-600">Don't have an account? </span>
-        <Link to="/signup" className="text-blue-600 font-semibold hover:underline">
+        <Link to="/signuppage" className="text-blue-600 font-semibold hover:underline">
           Sign up
         </Link>
       </div>

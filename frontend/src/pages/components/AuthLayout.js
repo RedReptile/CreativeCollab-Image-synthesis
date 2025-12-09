@@ -7,9 +7,16 @@ const AuthLayout = ({ children, title, subtitle }) => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
+    // Allow access to auth pages (login/signup) without token check
+    const currentPath = window.location.pathname;
+    const authPaths = ['/login', '/signup', '/signuppage', '/forgotpassword', '/sendotp'];
+    
+    if (authPaths.includes(currentPath)) {
+      return; // Allow access to auth pages
+    }
 
-    // If no token, always force redirect to login
+    const token = localStorage.getItem("token");
+    // For other pages, redirect to login if no token
     if (!token) {
       navigate("/login");
     }

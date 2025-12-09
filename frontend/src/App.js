@@ -8,13 +8,12 @@ import "react-toastify/dist/ReactToastify.css";
 import LoginPage from "./pages/auth/LoginPage";
 import SignupPage from "./pages/auth/SignupPage";
 import ForgotPasswordPage from "./pages/auth/ForgotPassword";
-import SendOtp from "./pages/auth/SendOtp";
 import HomePage from "./pages/dashboard/HomePage";
 import APITestPage from "./pages/apitest/APITest.js";
 import Profile from "./pages/profile/ProfilePage.js";
-import ArtisticFilter from "./main_pages/ArtisticFilter.js";
-import ImageSynthesis from "./main_pages/ImageSynthesis.js";
-import TutorialPage from "./pages/dashboard/TutorialPage.js";
+import ImageSynthesis from "./main_pages/ImageSynthesis";
+import ArtisticFilter from "./main_pages/ArtisticFilter";
+import PaymentApp from "./payment/App";
 
 function App() {
   return (
@@ -24,13 +23,12 @@ function App() {
         <Route path="/login" element={<LoginPage />} />
         <Route path="/signup" element={<SignupPage />} />
         <Route path="/forgotpassword" element={<ForgotPasswordPage />} />
-        <Route path="/sendotp" element={<SendOtp />} />
         <Route path="/homepage" element={<HomePage />} />
-        <Route path="/profile" element={<Profile />} />
-        <Route path="/apitest" element={<APITestPage />} />
-        <Route path="/artisticfilter" element={<ArtisticFilter />} />
         <Route path="/imagesynthesis" element={<ImageSynthesis />} />
-        <Route path="/tutorial" element={<TutorialPage />} />
+        <Route path="/artisticfilter" element={<ArtisticFilter />} />
+        <Route path="/apitest" element={<APITestPage />} />
+        <Route path="/profile" element={<Profile />} />
+        <Route path="/payment/*" element={<PaymentApp />} />
       </Routes>
       <ToastContainer
         position="top-right"
