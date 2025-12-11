@@ -20,12 +20,6 @@ const HomePage = () => {
             <Link to="/homepage" className="px-4 hover:text-[#4A78EF]">
               Home
             </Link>
-            <Link to="/about" className="px-4 hover:text-[#4A78EF]">
-              About
-            </Link>
-            <Link to="/services" className="px-4 hover:text-[#4A78EF]">
-              Tutorials
-            </Link>
           </nav>
         </div>
 

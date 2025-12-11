@@ -390,7 +390,6 @@ export default function ImageSynthesis() {
         <div className="flex flex-1 items-center justify-center">
           <nav className="space-x-7 flex text-sm font-medium">
             <a href="/homepage" className="px-4 hover:text-[#4A78EF]">Home</a>
-            <a href="/services" className="px-4 hover:text-[#4A78EF]">Tutorials</a>
           </nav>
         </div>
 

@@ -211,7 +211,6 @@ const ProfilePage = () => {
         <div className="flex flex-1 items-center justify-center">
           <nav className="space-x-7 flex text-sm font-medium">
             <Link to="/homepage" className="px-4 hover:text-[#4A78EF]">Home</Link>
-            <Link to="/services" className="px-4 hover:text-[#4A78EF]">Tutorials</Link>
           </nav>
         </div>
 

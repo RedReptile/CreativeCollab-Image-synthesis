@@ -108,7 +108,7 @@ const ForgotPasswordPage = () => {
       {/* Signup Link */}
       <div className="w-full text-center mt-3 text-xs">
         <span className="text-gray-600">Don't have an account? </span>
-        <Link to="/signuppage" className="text-blue-600 font-semibold hover:underline">
+        <Link to="/signup" className="text-blue-600 font-semibold hover:underline">
           Sign up
         </Link>
       </div>
